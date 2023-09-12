@@ -39,9 +39,12 @@ jobs:
   
       # Runs a set of commands using the runners shell
       - name: Benchmark Go
+        env:
+          VERBOSE: "True"
         run: |
-          cd go
+          cd go; \
           ./bench.sh
+        
       - name: Upload Benchmark
         uses: benchmark-action/github-action-benchmark@v1.18.0
         with:
