@@ -1,0 +1,58 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  benchmark-go:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+        name: Checkout opentelemetry-go
+        with:
+          repository: open-telemetry/opentelemetry-go
+          ref: main
+          path: go/opentelemetry-go
+          fetch-depth: 1
+      - name: Setup Go environment
+        uses: actions/setup-go@v4.1.0
+        with:
+          # The Go version to download (if necessary) and use. Supports semver spec and ranges. Be sure to enclose this option in single quotation marks.
+          go-version: '~1.21.1' # >=1.21.1 <1.22.0 
+          # Path to the go.mod or go.work file.
+          go-version-file: go/opentelemetry-go
+          # Set this option to true if you want the action to always check for the latest available version that satisfies the version spec
+          check-latest: true 
+  
+      # Runs a set of commands using the runners shell
+      - name: Benchmark Go
+        run: |
+          cd go
+          ./bench.sh
+      - name: Upload Benchmark
+        uses: benchmark-action/github-action-benchmark@v1.18.0
+        with:
+          # Name of the benchmark. This value must be identical among all benchmarks
+          name: GO# default is Benchmark
+          # Tool to use get benchmark output. One of "cargo", "go", "benchmarkjs", "pytest", "googlecpp", "catch2", "julia", "benchmarkdotnet", "customBiggerIsBetter", "customSmallerIsBetter"
+          tool: "go"
+          # A path to file which contains the benchmark output
+          output-file-path: "go/bench-output/opentelemetry-go.txt"
+          # Path to directory which contains benchmark files on GitHub pages branch
+          # benchmark-data-dir-path: # default is dev/bench
+          gh-pages-branch: benchmarks
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
